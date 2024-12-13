@@ -25,6 +25,12 @@ import src.utils as utils
 import smtplib
 from email.mime.text import MIMEText
 
+
+def get_password_from_file():
+    with open('secrets.txt', 'r') as f:
+        return f.read().strip()
+
+
 def send_email_notification():
     msg = MIMEText("Your Python script has completed execution!")
     msg['Subject'] = "Script Finished"
@@ -37,7 +43,7 @@ def send_email_notification():
 
     # Login credentials
     your_email = "troschkop@gmail.com"
-    your_password = "qozw vnbp ppvm bcbz"  # Use your Gmail App Password
+    your_password = get_password_from_file()
 
     try:
         with smtplib.SMTP(smtp_server, smtp_port) as server:
