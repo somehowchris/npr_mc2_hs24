@@ -9,13 +9,15 @@ model = AutoModelForSequenceClassification.from_pretrained(model_name, num_label
 
 
 def tokenize_function(examples):
-    return tokenizer(examples['content'], padding="max_length", truncation=True)
+    return tokenizer(examples["content"], padding="max_length", truncation=True)
 
 
 def compute_metrics(pred):
     labels = pred.label_ids
     preds = pred.predictions.argmax(-1)
-    precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average='binary')
+    precision, recall, f1, _ = precision_recall_fscore_support(
+        labels, preds, average="binary"
+    )
     acc = accuracy_score(labels, preds)
     return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
 
@@ -28,4 +30,3 @@ def create_specific_splits(data, sizes):
             splits[f"train_{size}"] = split_data
             print(f"Split with {size} samples created in memory.")
     return splits
-

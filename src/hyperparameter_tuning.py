@@ -10,8 +10,12 @@ def objective(trial):
     train_dataset_subset = dataloader.dataset["train"].select(range(6000))
     test_dataset_subset = dataloader.dataset["test"].select(range(1000))
 
-    train_tokenized = train_dataset_subset.map(models.tokenizer.tokenize_function, batched=True).with_format("torch")
-    test_tokenized = test_dataset_subset.map(models.tokenizer.tokenize_function, batched=True).with_format("torch")
+    train_tokenized = train_dataset_subset.map(
+        models.tokenizer.tokenize_function, batched=True
+    ).with_format("torch")
+    test_tokenized = test_dataset_subset.map(
+        models.tokenizer.tokenize_function, batched=True
+    ).with_format("torch")
 
     train_dataset = train_tokenized.with_format("torch")
     test_dataset = test_tokenized.with_format("torch")
@@ -32,7 +36,7 @@ def objective(trial):
         save_strategy="epoch",
         save_total_limit=2,
         load_best_model_at_end=True,
-        metric_for_best_model="accuracy"
+        metric_for_best_model="accuracy",
     )
 
     trainer = Trainer(
@@ -41,7 +45,7 @@ def objective(trial):
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
         processing_class=models.tokenizer,
-        compute_metrics=utils.compute_metrics
+        compute_metrics=utils.compute_metrics,
     )
 
     # Train the model
@@ -58,4 +62,3 @@ study.optimize(objective, n_trials=10)  # Run 10 trials (you can increase this)
 # Get the best hyperparameters
 best_hyperparams = study.best_params
 print("Best Hyperparameters:", best_hyperparams)
-

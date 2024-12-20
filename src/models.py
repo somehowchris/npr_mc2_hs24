@@ -8,5 +8,4 @@ model_name = "distilbert-base-uncased"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=2)
 
-embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-
+embedding_model = SentenceTransformer("all-MiniLM-L6-v2")

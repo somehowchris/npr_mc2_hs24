@@ -27,15 +27,15 @@ from email.mime.text import MIMEText
 
 
 def get_password_from_file():
-    with open('secrets.txt', 'r') as f:
+    with open("secrets.txt", "r") as f:
         return f.read().strip()
 
 
 def send_email_notification():
     msg = MIMEText("Your Python script has completed execution!")
-    msg['Subject'] = "Script Finished"
-    msg['From'] = "troschkop@gmail.com"
-    msg['To'] = "arianiseni76@gmail.com"
+    msg["Subject"] = "Script Finished"
+    msg["From"] = "troschkop@gmail.com"
+    msg["To"] = "arianiseni76@gmail.com"
 
     # Gmail SMTP configuration
     smtp_server = "smtp.gmail.com"
@@ -61,23 +61,32 @@ def main():
     # Load the dataset
     print("Loading dataset...")
     dataset_raw = dataloader.dataset
-    df_train_raw = pd.DataFrame(dataset_raw['train']).head(1000)
-    df_test_raw = pd.DataFrame(dataset_raw['test']).head(1000)
+    df_train_raw = pd.DataFrame(dataset_raw["train"]).head(1000)
+    df_test_raw = pd.DataFrame(dataset_raw["test"]).head(1000)
 
     sizes = [50, 100, 200, 400, 600, 800, 1000]
 
     # Create specific splits
     nested_splits = utils.create_specific_splits(df_train_raw, sizes)
-    nested_splits = {key: Dataset.from_pandas(value)
-                     for key, value in tqdm(nested_splits.items(), desc="Converting splits to Dataset")}
+    nested_splits = {
+        key: Dataset.from_pandas(value)
+        for key, value in tqdm(
+            nested_splits.items(), desc="Converting splits to Dataset"
+        )
+    }
 
     # Tokenize the data
-    nested_splits_tokenized = {key: value.map(utils.tokenize_function, batched=True)
-                               for key, value in tqdm(nested_splits.items(), desc="Tokenizing data")}
+    nested_splits_tokenized = {
+        key: value.map(utils.tokenize_function, batched=True)
+        for key, value in tqdm(nested_splits.items(), desc="Tokenizing data")
+    }
 
-    test_tokenized = (dataset_raw['test'].select(range(1000))
-                      .map(utils.tokenize_function, batched=True)
-                      .with_format("torch"))
+    test_tokenized = (
+        dataset_raw["test"]
+        .select(range(1000))
+        .map(utils.tokenize_function, batched=True)
+        .with_format("torch")
+    )
 
     training_args = TrainingArguments(
         output_dir="outputs/results",
@@ -92,13 +101,15 @@ def main():
         save_strategy="epoch",
         save_total_limit=2,
         load_best_model_at_end=True,
-        metric_for_best_model="accuracy"
+        metric_for_best_model="accuracy",
     )
 
     losses_per_epoch = {}
     results = {}
 
-    for size, train_dataset in tqdm(nested_splits_tokenized.items(), desc="Training models"):
+    for size, train_dataset in tqdm(
+        nested_splits_tokenized.items(), desc="Training models"
+    ):
 
         trainer = Trainer(
             model=models.model,
@@ -106,25 +117,27 @@ def main():
             train_dataset=train_dataset.with_format("torch"),
             eval_dataset=test_tokenized,
             processing_class=models.tokenizer,
-            compute_metrics=utils.compute_metrics
+            compute_metrics=utils.compute_metrics,
         )
 
         print(f"Training model on subset: {size}.")
-        print("-"*50)
+        print("-" * 50)
         trainer.train()
         evaluation_results = trainer.evaluate()
         results[size] = evaluation_results
         print(f"Evaluation results: {evaluation_results}")
-        print("-"*50)
+        print("-" * 50)
 
-        train_loss = [log['loss'] for log in trainer.state.log_history if 'loss' in log]
+        train_loss = [log["loss"] for log in trainer.state.log_history if "loss" in log]
         losses_per_epoch[size] = train_loss
 
         model_output_dir = f"outputs/results/{size}_model"
         tokenizer_output_dir = f"outputs/results/{size}_tokenizer"
         models.model.save_pretrained(model_output_dir)
         models.tokenizer.save_pretrained(tokenizer_output_dir)
-        print(f"Model and tokenizer saved in {model_output_dir} and {tokenizer_output_dir} respectively.")
+        print(
+            f"Model and tokenizer saved in {model_output_dir} and {tokenizer_output_dir} respectively."
+        )
         print("Training completed.")
 
     # Print all results
@@ -145,4 +158,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
