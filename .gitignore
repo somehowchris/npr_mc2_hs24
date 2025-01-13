@@ -4,3 +4,11 @@ logs
 logs_combined
 test_embeddings.npy
 train_embeddings.npy
+data
+test_embeddings
+eval
+logs_weaklabels
+models
+results_weaklabels
+embeddings
+src/__pycache__
